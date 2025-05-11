@@ -4,7 +4,6 @@ from models import Person, Relationship
 import logging
 from typing import List, Optional, Dict, Any
 
-# Configuração de logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -15,7 +14,7 @@ class Neo4jCRUD:
             self.driver = GraphDatabase.driver(
                 SANDBOX_URI,
                 auth=(SANDBOX_USER, SANDBOX_PASSWORD),
-                encrypted=False,  # Desativado para conexão direta
+                encrypted=False,  
                 connection_timeout=15,
                 max_connection_pool_size=5
             )
@@ -24,7 +23,6 @@ class Neo4jCRUD:
             logger.error(f"❌ Falha na configuração: {str(e)}")
             raise
 
-    # Operações Básicas CRUD para Person
     def create_person(self, person: Person) -> Optional[Person]:
         """Cria uma nova pessoa no banco"""
         try:
@@ -100,7 +98,6 @@ class Neo4jCRUD:
             logger.error(f"❌ Erro ao deletar pessoa: {str(e)}")
             return False
 
-    # Operações com Relacionamentos
     def create_relationship(
         self, 
         from_name: str, 
@@ -139,7 +136,6 @@ class Neo4jCRUD:
             logger.error(f"❌ Erro ao buscar relacionamentos: {str(e)}")
             return []
 
-    # Operações Avançadas
     def find_people_by_profession(self, profession: str) -> List[Person]:
         """Encontra pessoas por profissão"""
         try:

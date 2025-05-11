@@ -4,21 +4,18 @@ from models import Person, Relationship
 import pandas as pd
 import plotly.express as px
 
-# Configuração da página
 st.set_page_config(
     page_title="Neo4j Dashboard",
     page_icon=":bar_chart:",
     layout="wide"
 )
 
-# Título e descrição
 st.title("📊 Dashboard Interativa Neo4j")
 st.markdown("""
     Gerencie seu banco de dados Neo4j através desta interface amigável.
     Todas as operações CRUD estão disponíveis abaixo.
 """)
 
-# Sidebar com conexão
 with st.sidebar:
     st.header("🔌 Configuração de Conexão")
     if 'db' not in st.session_state:
@@ -35,35 +32,30 @@ with st.sidebar:
         ["Visualizar Dados", "Adicionar Pessoa", "Editar Pessoa", "Remover Pessoa", "Relacionamentos"]
     )
 
-# Página principal
 if 'db' in st.session_state:
     db = st.session_state.db
     
-    # Operação: Visualizar Dados
     if operation == "Visualizar Dados":
         st.header("👥 Pessoas no Banco de Dados")
         
-        # Filtros
         col1, col2 = st.columns(2)
         with col1:
             min_age = st.slider("Idade mínima", 18, 100, 18)
         with col2:
             profession_filter = st.text_input("Filtrar por profissão")
         
-        # Obter dados
+
         people = db.get_all_people()
         filtered_people = [
             p for p in people 
             if p.age >= min_age and 
             (profession_filter.lower() in p.profession.lower() if profession_filter else True)
         ]
-        
-        # Mostrar em tabela
+
         if filtered_people:
             df = pd.DataFrame([p.to_dict() for p in filtered_people])
             st.dataframe(df, use_container_width=True)
-            
-            # Gráfico de profissões
+
             st.subheader("📈 Distribuição por Profissão")
             profession_counts = df['profession'].value_counts().reset_index()
             profession_counts.columns = ['Profissão', 'Quantidade']
@@ -78,8 +70,7 @@ if 'db' in st.session_state:
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.warning("Nenhuma pessoa encontrada com esses filtros!")
-    
-    # Operação: Adicionar Pessoa
+
     elif operation == "Adicionar Pessoa":
         st.header("➕ Adicionar Nova Pessoa")
         
@@ -104,8 +95,7 @@ if 'db' in st.session_state:
                         st.error("Erro ao adicionar pessoa!")
                 else:
                     st.warning("Campos obrigatórios* não preenchidos!")
-    
-    # Operação: Editar Pessoa
+
     elif operation == "Editar Pessoa":
         st.header("✏️ Editar Pessoa Existente")
         
@@ -141,8 +131,7 @@ if 'db' in st.session_state:
                         st.error("Erro ao atualizar pessoa!")
         else:
             st.warning("Nenhuma pessoa encontrada no banco de dados!")
-    
-    # Operação: Remover Pessoa
+
     elif operation == "Remover Pessoa":
         st.header("🗑️ Remover Pessoa")
         
@@ -154,13 +143,12 @@ if 'db' in st.session_state:
             if st.button("Confirmar Remoção"):
                 if db.delete_person(selected_name):
                     st.success(f"Pessoa {selected_name} removida com sucesso!")
-                    st.experimental_rerun()  # Atualiza a lista
+                    st.experimental_rerun()  
                 else:
                     st.error("Erro ao remover pessoa!")
         else:
             st.warning("Nenhuma pessoa encontrada no banco de dados!")
     
-    # Operação: Relacionamentos
     elif operation == "Relacionamentos":
         st.header("🤝 Gerenciar Relacionamentos")
         
@@ -201,8 +189,7 @@ if 'db' in st.session_state:
                     st.write(f"Relacionamentos de {selected_person}:")
                     for rel in relationships:
                         st.write(f"- {rel['type']} → {rel['name']} (desde {rel['props'].get('since', '?')})")
-                    
-                    # Visualização gráfica
+ 
                     nodes = {selected_person: "Pessoa Selecionada"}
                     links = []
                     
@@ -213,8 +200,7 @@ if 'db' in st.session_state:
                             "target": rel['name'],
                             "type": rel['type']
                         })
-                    
-                    # Criar DataFrame para visualização
+
                     nodes_df = pd.DataFrame({
                         "name": list(nodes.keys()),
                         "type": list(nodes.values())
@@ -222,17 +208,15 @@ if 'db' in st.session_state:
                     
                     links_df = pd.DataFrame(links)
                     
-                    # Visualização com Plotly
                     fig = px.scatter(
                         nodes_df, 
-                        x=[1] * len(nodes_df),  # Posição X fictícia
-                        y=[1] * len(nodes_df),  # Posição Y fictícia
+                        x=[1] * len(nodes_df),  
+                        y=[1] * len(nodes_df),  
                         text="name",
                         color="type",
                         title=f"Rede de Relacionamentos de {selected_person}"
                     )
                     
-                    # Adicionar arestas
                     for _, link in links_df.iterrows():
                         fig.add_shape(
                             type="line",
@@ -248,6 +232,5 @@ if 'db' in st.session_state:
             else:
                 st.warning("Nenhuma pessoa encontrada no banco de dados!")
 
-# Mensagem se não estiver conectado
 else:
     st.error("Não foi possível conectar ao banco de dados. Verifique as configurações.")
